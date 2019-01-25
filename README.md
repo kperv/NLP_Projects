@@ -1,3 +1,2 @@
-Hello everyone!
-This is a repo with my study projects on Data Science and machine learning.
-Simple and easy.
+#Hello, World!
+Here are my pet projects, nothing fancy, just to practise skills.
