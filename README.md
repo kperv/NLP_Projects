@@ -1,8 +1,8 @@
  
 Exercises with Data Science/ML/Python.
 ======================================
-## Almost all notebooks are closely connected to the study book:
-## A.Muller Introduction to Machine Learning with Python
+
+## Python / Jupyter notebook / scikit learn
 
 * **3D_SVM** is a 3D visualisation of decision surface creation by Support Vector Classifier.
 Data is blobs (4 random sets). Don't forget to move the runners! 
@@ -19,6 +19,6 @@ Data is blobs (4 random sets). Don't forget to move the runners!
 
 * **string_lists** is an interactive programm which creates a _file.lst_ in the PATH folder (or reading other _.lst_ files if any) and interactively writes lines given by a user to this file. You can add and delete lines or save changes on every step.
 
-
+Almost all notebooks are closely connected to the study book: A.Muller Introduction to Machine Learning with Python
 
 
