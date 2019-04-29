@@ -1,8 +1,8 @@
  
 Exercises with Data Science/ML/Python.
 ======================================
-Almost all programms are closely connected to the study book:
-## A.Muller Introduction to Machine Learning with Python -->
+## Almost all notebooks are closely connected to the study book:
+## A.Muller Introduction to Machine Learning with Python
 
 * **3D_SVM** is a 3D visualisation of decision surface creation by Support Vector Classifier.
 Data is blobs (4 random sets). Don't forget to move the runners! 
