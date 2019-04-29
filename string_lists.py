@@ -7,8 +7,9 @@ You can add and delete lines or save changes on every step.
 import os
 
 class CancelledError(Exception): pass
+class End(Exception): pass
 
-PATH = "/home/ksu/"
+PATH = "/home/Projects/string_lists/"
 
 def set_path():
     os.chdir(PATH)
