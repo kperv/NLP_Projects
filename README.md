@@ -29,9 +29,9 @@ Data is blobs (4 random sets).
 
 * **Naughts'n'Crosses** is a python implementation of a game for two players, up to 5*5 grid.
 
-* **String_lists** is an interactive programm which creates a _file.lst_ in the PATH folder (or reading other _.lst_ files if any) and interactively writes lines given by a user to this file. You can add and delete lines or save changes on every step.
+* **Files_with_user_strings** is an interactive programm which creates a _file.lst_ in the PATH folder (or reading other _.lst_ files if any) and interactively writes lines given by a user to this file. You can add and delete lines or save changes on every step.
 
 
-Most notebooks are closely connected to the study book: A.Muller Introduction to Machine Learning with Python
+Most notebooks are based on the study book: A.Muller Introduction to Machine Learning with Python
 
 
