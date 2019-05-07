@@ -19,7 +19,7 @@ Data is blobs (4 random sets).
 
 * **SVC_breast_cancer** SVC model was applied to Breast cancer dataset. Best model is found by GridSearch. Test set accuracy is 0.96. Then the cross validation is repeated with ROC scoring to get better results. 
 
-* **ModelSelection_SVC_iris** is another exercise on model selection using GridSearch using iris dataset. Heatmap visualisation shows calculated scpre map.
+* **ModelSelection_SVC_iris** is another exercise on model selection using GridSearch using iris dataset. Heatmap visualisation shows calculated score map.
 
 * **TimeSeries_NYCcitibike** Time series exercise. Real data of citibike NYC rentals (August, 2018) was analysed. Ridge classifier showed 0.94 score.
 
