@@ -6,6 +6,14 @@ Exercises with Data Science/ML/Python.
 
 * **FoodReviews_MulticlassClassification** A simple 3 layer NN to classify real reviews into 5 classes (1 is abs negative, 5 is abs positive). Bag of words with sparse matrices and a word dictionary.
 
+## Tensor flow
+
+* **TF_2layerNN** is a simple attempt to build a perceptron from scratch. Scikit-learn digits is the data and RELU was used as activation for the layer.
+
+* **TF_3layerNN** is another attempt on digits but with mini-batch learning, batch normalization for gradients and a learning rate drop during training. The accuracy is .9866% 
+
+* **TF_logit_regres is an exercise to practise some basics of perceptron math. 
+
 ## Data visualisation
 
 * **3D_SVM** is a 3D visualisation of decision surface creation by Support Vector Classifier.
@@ -32,6 +40,5 @@ Data is blobs (4 random sets).
 * **Files_with_user_strings** is an interactive programm which creates a _file.lst_ in the PATH folder (or reading other _.lst_ files if any) and interactively writes lines given by a user to this file. You can add and delete lines or save changes on every step.
 
 
-Most notebooks are based on the study book: A.Muller Introduction to Machine Learning with Python
 
 
