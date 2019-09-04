@@ -6,13 +6,13 @@ Exercises with Data Science/ML/Python.
 
 * **FoodReviews_MulticlassClassification** A simple 3 layer NN to classify real reviews into 5 classes (1 is abs negative, 5 is abs positive). Bag of words with sparse matrices and a word dictionary.
 
-## Tensor flow
+## TensorFlow
 
 * **TF_2layerNN** is a simple attempt to build a perceptron from scratch. Scikit-learn digits is the data and RELU was used as activation for the layer.
 
 * **TF_3layerNN** is another attempt on digits but with mini-batch learning, batch normalization for gradients and a learning rate drop during training. The accuracy is .9866% 
 
-* **TF_logit_regres is an exercise to practise some basics of perceptron math. 
+* **TF_logit_regres** is an exercise to practise some basics of perceptron math. 
 
 ## Data visualisation
 
