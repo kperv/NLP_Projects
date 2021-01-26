@@ -1,8 +1,6 @@
 
-Notebooks on **TensorFlow 1.10** are:
-
-*TF_3layerNN.ipynb* is a "from-scratch" 3 dense layer neural network to predict digits from sklearn dataset.
-*TF_logit_regres.ipynb* is a notebook to try different cost functions as well as see batch normalization impact on NN training
+Notebook *TF_3layerNN.ipynb* is a **TensorFlow1.10** "from-scratch" 3 dense layer neural network to predict digits from sklearn dataset.
+*TF_logit_regres.ipynb* is a similar back-to-basics notebook to try different cost functions as well as see batch normalization impact on NN training
 
 *TopicSimilarity.ipynb*, to which texts.txt is a corpus, uses **NLTK** to create topic vectors manually and check their cosine similarity.
 
