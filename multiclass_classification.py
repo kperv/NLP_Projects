@@ -15,8 +15,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
-from preprocessing import get_nclass_df
-from preprocessing import add_splits
+from preprocessing import *
 
 
 data_path = os.path.join(os.getcwd(), 'winemag-data_first150k.csv')
