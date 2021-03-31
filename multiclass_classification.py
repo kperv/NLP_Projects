@@ -15,6 +15,8 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
+from preprocessing import *
+
 
 data_path = os.path.join(os.getcwd(), 'winemag-data_first150k.csv')
 cutoff = 25   # minimal count of a token in Counter
@@ -23,7 +25,7 @@ batch_size = 256
 num_epochs = 5
 num_channels = 64
 learning_rate= 0.005
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_classes = 3
 train_split = 0.7
 val_split = 0.15
@@ -43,51 +45,6 @@ def save_n_descriptions(reviews, n=5):
     :return: cropped original DataFrame, new DataFrame with n reviews
     """
     return reviews[:-n], reviews[-n:]
-
-
-def get_nclass_df(data_df, n_classes=n_classes):
-    """Choose n_classes number of countries sorted by number
-     and create a new dataframe with chosen countries.
-
-    :param data_df: dataframe with reviews
-    :param n_classes: should be 2 or more
-    :return: a new smaller dataframe with n_classes unique countries
-    """
-    n_country_reviews = pd.DataFrame(columns=['country', 'description'])
-    top_countries = data_df.country.value_counts()[:n_classes].keys()
-    for country in top_countries:
-        country_reviews = pd.DataFrame(data_df[data_df.country == country])
-        n_country_reviews = n_country_reviews.append(country_reviews)
-    return n_country_reviews
-
-
-def add_splits(data_df, train_split=0.7, val_split=0.15):
-    """Create a new dataframe with additional column 'split',
-    calculate number of rows for each split
-    and populate with a corresponding string the new column.
-
-    :param data_df: a dataframe with reviews
-    :param train_split: (float) proportion of dataframe
-                        to be used for training
-    :param val_split: the same for validation
-    :return: a sorted dataframe with three columns
-    """
-    assert sum(train_split, val_split) <= 0.9  # a test set should be
-                                               # at least 10%
-    split_reviews = pd.DataFrame(columns=['country', 'description', 'split'])
-    for country in data_df.country.unique():
-        country_reviews = pd.DataFrame(data_df[data_df.country == country])
-        n_total = len(country_reviews)
-        n_train = int(n_total * train_split)
-        n_val = int(n_total * val_split)
-
-        country_reviews['split'] = None
-        country_reviews.split.iloc[:n_train] = 'train'
-        country_reviews.split.iloc[n_train:n_train+n_val] = 'val'
-        country_reviews.split.iloc[n_train+n_val:] = 'test'
-
-        split_reviews = split_reviews.append(country_reviews)
-    return split_reviews
 
 
 class Vocabulary(object):
@@ -147,7 +104,7 @@ class Vocabulary(object):
 
 
 class ReviewVectorizer(object):
-    """Create a matrix representing a review using token dictionary."""
+    """Create a matrix representing a review using token-index dictionary."""
 
     def __init__(self, review_vocab, country_vocab, max_review_length):
         self.review_vocab = review_vocab
@@ -248,9 +205,11 @@ class ReviewClassifier(nn.Module):
     def __init__(self, initial_num_channels, num_classes, num_channels):
         super(ReviewClassifier, self).__init__()
         self.convnet = nn.Sequential(
-            nn.Conv1d(in_channels=initial_num_channels,
-                      out_channels=num_channels,
-                      kernel_size=3),
+            nn.Conv1d(
+                in_channels=initial_num_channels,
+                out_channels=num_channels,
+                kernel_size=3
+            ),
             nn.ELU())
         self.fc = nn.Linear(num_channels, num_classes)
 
@@ -331,7 +290,7 @@ def test_func(test_df, classifier, loss_func):
 
 
 def train(reviews, training_params, batch_size, epochs):
-    classifier, vectorizer, optimizer, loss_func = *training_params
+    classifier, vectorizer, optimizer, loss_func = training_params
     for epoch in range(epochs):
         start_time = time.time()
         reviews.set_split("train")
