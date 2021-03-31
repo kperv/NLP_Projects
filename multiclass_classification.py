@@ -421,6 +421,11 @@ def predict_and_print(
             )
         )
 
+def clean_memory():
+    del reviews
+    del vectorizer
+    del classifier
+    torch.cuda.empty_cache()
 
 def main():
     """Read the dataframe with reviews, preprocess the dataframe,
