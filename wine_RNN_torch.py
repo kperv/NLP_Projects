@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 import os
 
-for root, dirs, files in os.walk(os.getcwd()):
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+dir_path = "/Users/ksu/projects/data"
+for root, dirs, files in os.walk(dir_path):
     for file in files:
         if file.endswith('first150k.csv'):
             path = os.path.join(root, file)

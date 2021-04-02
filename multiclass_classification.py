@@ -15,36 +15,19 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
-from preprocessing import *
+import dataset_preprocessing as dp
+import pretty_print as pp
 
-
-data_path = os.path.join(os.getcwd(), 'winemag-data_first150k.csv')
-cutoff = 25   # minimal count of a token in Counter
-              # for a token to be put in Vocabulary
-batch_size = 256
-num_epochs = 5
-num_channels = 64
-learning_rate= 0.005
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-n_classes = 3
-train_split = 0.7
-val_split = 0.15
-
-
-def read_data(data_path):
-    return pd.read_csv(data_path)
-
-
-def save_n_descriptions(reviews, n=5):
-    """Take away n reviews from the tail of original dataframe
-     and save them in a new df.
-
-    :param reviews: DataFrame with reviews
-    :param n: a number of reviews to be explicitly printed
-              and predicted by trained net
-    :return: cropped original DataFrame, new DataFrame with n reviews
-    """
-    return reviews[:-n], reviews[-n:]
+DATA_DIR = '/Users/ksu/projects/data'
+NUM_CLASSES = 3
+TRAIN_RATIO = 0.7
+VALIDATE_RATIO = 0.15
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+BATCH_SIZE = 256
+NUM_EPOCHS = 5
+NUM_CHANNELS = 64
+LEARNING_RATE= 0.005
+MIN_TOKEN_COUNT = 25  # minimal count of a token o be put in Vocabulary
 
 
 class Vocabulary(object):
@@ -235,8 +218,8 @@ def generate_batch(batch):
     return text, label
 
 
-def set_training_params(reviews, num_channels, device, learning_rate):
-    vectorizer = reviews.get_vectorizer()
+def set_training_params(wine_dataset_object, num_channels, device, learning_rate):
+    vectorizer = wine_dataset_object.get_vectorizer()
     classifier = ReviewClassifier(
         initial_num_channels=len(vectorizer.review_vocab),
         num_classes=len(vectorizer.country_vocab),
@@ -245,10 +228,13 @@ def set_training_params(reviews, num_channels, device, learning_rate):
     classifier = classifier.to(device)
     loss_func = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.Adam(classifier.parameters(), lr=learning_rate)
-    return classifier, vectorizer, optimizer, loss_func
+    train_params = classifier, optimizer, loss_func
+    predict_params = classifier, vectorizer
+    return train_params, predict_params
 
 
-def train_func(train_df, classifier, optimizer, loss_func, batch_size):
+def train_func(train_df, train_params, batch_size):
+    classifier, optimizer, loss_func = *train_params
     train_loss = 0
     train_acc = 0
     data = DataLoader(
@@ -259,8 +245,8 @@ def train_func(train_df, classifier, optimizer, loss_func, batch_size):
         )
     for i, (text, label) in enumerate(data):
         optimizer.zero_grad()
-        text = text.to(device)
-        label = label.to(device)
+        text = text.to(DEVICE)
+        label = label.to(DEVICE)
         output = classifier.forward(text)
         loss = loss_func(output, label)
         train_loss = loss.item()
@@ -270,17 +256,18 @@ def train_func(train_df, classifier, optimizer, loss_func, batch_size):
     return train_loss/len(train_df), train_acc/len(train_df)
 
 
-def test_func(test_df, classifier, loss_func):
+def test_func(test_df, train_params):
+    classifier, _, loss_func = *train_params
     loss = 0
     acc = 0
     data = DataLoader(
         test_df,
-        batch_size=batch_size,
+        batch_size=BATCH_SIZE,
         collate_fn=generate_batch
         )
     for text, label in data:
-        text = text.to(device)
-        label = label.to(device)
+        text = text.to(DEVICE)
+        label = label.to(DEVICE)
         with torch.no_grad():
             output = classifier.forward(text)
             loss = loss_func(output, label)
@@ -289,20 +276,13 @@ def test_func(test_df, classifier, loss_func):
     return loss/len(test_df), acc/len(test_df)
 
 
-def train(reviews, training_params, batch_size, epochs):
-    classifier, vectorizer, optimizer, loss_func = training_params
+def train(data, train_params, batch_size, epochs):
     for epoch in range(epochs):
         start_time = time.time()
-        reviews.set_split("train")
-        train_loss, train_acc = train_func(
-            reviews,
-            classifier,
-            optimizer,
-            loss_func,
-            batch_size
-            )
-        reviews.set_split("val")
-        val_loss, val_acc = test_func(reviews, classifier, loss_func)
+        data.set_split("train")
+        train_loss, train_acc = train_func(data, train_params, batch_size)
+        data.set_split("val")
+        val_loss, val_acc = test_func(data, train_params)
         secs = int(time.time() - start_time)
         mins = secs // 60
         secs = secs % 60
@@ -314,100 +294,56 @@ def train(reviews, training_params, batch_size, epochs):
                '| \t Acc: {:.1f}%').format(val_loss, val_acc * 100))
 
 
-def reviews_for_print(saved_reviews):
-    """Prepare a small test set for representational printing.
-
-    :param saved_reviews: a list of strings
-    :return: a tuple of three elements:
-                 a list of tokenized reviews,
-                 a list of classes,
-                 a list of original string reviews
-    """
-    human_readable_reviews = saved_reviews.description.values.tolist()
-    saved_reviews.description = saved_reviews.description\
-        .str.lower()\
-        .str.replace('[^a-zA-Z\']+', ' ')\
-        .str.split()
-    countries = saved_reviews.country.values.tolist()
-    reviews = saved_reviews.description.values.tolist()
-    return reviews, countries, human_readable_reviews
-
-
-def predict_country(review, classifier, vectorizer):
-    """
-
-    :param review:
-    :param classifier:
-    :param vectorizer:
-    :return:
-    """
-    vectorized_review = vectorizer.vectorize(review)
-    vectorized_review = torch.tensor(vectorized_review).unsqueeze(0)
-    vectorized_review = vectorized_review.to(device)
-    result = classifier(vectorized_review, apply_softmax=True)
+def predict_label(data, predict_params):
+    classifier, vectorizer = *predict_params
+    vectorized_data = vectorizer.vectorize(data)
+    vectorized_data = torch.tensor(vectorized_data).unsqueeze(0)
+    vectorized_data = vectorized_data.to(DEVICE)
+    result = classifier(vectorized_data, apply_softmax=True)
     probability_values, indices = result.max(dim=1)
     index = indices.item()
-    predicted_country = vectorizer.country_vocab.lookup_index(index)
+    predicted_label = vectorizer.country_vocab.lookup_index(index)
     probability_value = probability_values.item()
-    return {'country': predicted_country,
+    return {'country': predicted_label,
             'probability': probability_value}
 
-def predict_and_print(
-        reviews,
-        countries,
-        human_readable_reviews,
-        classifier,
-        vectorizer
-    ):
-    """
-    Predict a country/class on a very small test dataset with saved original
-    form to print alongside the result
+def pretty_print(data_for_print, predict_params):
+    for text, label, unprocessed_text in zip(*data_for_print):
+        predict_dict = predict_label(text, predict_params)
+        print("Review: ", unprocessed_text)
+        print("Country is ", label)
+        print(("Prediction for country is {} "
+              "with probability {}").format(**predict_dict))
 
-    :param reviews: a list of tokenized reviews
-    :param countries: a list of labels for prediction
-    :param human_readable_reviews: a list of unprocessed original reviews
-    :param classifier: a trained instance of ReviewClassifier
-    :param vectorizer: an instance of ReviewVectorizer
-    :return: None
-    """
-    for index, review in enumerate(reviews):
-        predict_dict = predict_country(review, classifier, vectorizer)
-        print("Review: ", human_readable_reviews[index])
-        print("Country is ", countries[index])
-        print("Prediction for country is {} with probability {}".format(
-            predict_dict['country'],
-            predict_dict['probability']
-            )
-        )
-
-def clean_memory():
-    del reviews
-    del vectorizer
-    del classifier
+def clean_memory(wine_dataset_object, params):
+    del wine_dataset_object
+    for param in params:
+        del param
     torch.cuda.empty_cache()
+
 
 def main():
     """Read the dataframe with reviews, preprocess the dataframe,
     instantiate WineDataset instance and set convolutional neural net params,
     train the network and print predictions on saved untokenized reviews.
     """
-    reviews = read_data(data_path)
-    reviews = reviews[['country', 'description']]
-    reviews, saved_reviews = save_n_descriptions(reviews)
-    reviews = get_nclass_df(reviews, n_classes)
-    reviews = add_splits(reviews)
 
-    reviews = WineDataset.load_dataset_and_make_vectorizer(reviews, cutoff)
-    training_params = set_training_params(
-        reviews,
-        num_channels,
-        device,
-        learning_rate
+    reviews = dp.read_data(DATA_DIR)
+    print(reviews.head())
+    reviews, chunk = pp.get_chunk_for_pretty_print(reviews)
+    reviews = dp.get_nclass_df(reviews, NUM_CLASSES)
+    reviews = dp.add_splits(reviews)
+    wine_dataset = WineDataset.load_dataset_and_make_vectorizer(reviews, MIN_TOKEN_COUNT)
+    train_params, predict_params = set_training_params(
+        wine_dataset,
+        NUM_CHANNELS,
+        DEVICE,
+        LEARNING_RATE
         )
-    train(reviews, training_params, batch_size, num_epochs)
-
-    final_prediction = reviews_for_print(saved_reviews)
-    predict_and_print(*final_prediction, *training_params[:2])
+    train(wine_dataset, train_params, BATCH_SIZE, NUM_EPOCHS)
+    reviews_for_print = pp.reviews_for_print(chunk)
+    pretty_print(reviews_for_print, predict_params)
+    clean_memory(wine_dataset, train_params)
 
 
 if __name__ == '__main__':
