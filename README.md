@@ -1,5 +1,2 @@
-Pet project on natural language processing.
-Data is Wine Reviews dataset from kaggle.com.
-https://www.kaggle.com/zynicide/wine-reviews
-
-
+Different NLP ideas and techniques.
+More projects are on my kaggle page https://www.kaggle.com/kseniyap/code
